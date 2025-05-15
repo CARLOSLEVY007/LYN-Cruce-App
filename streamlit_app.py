@@ -36,18 +36,16 @@ if st.button("🚀 Ejecutar Cruce"):
         df_skus['LIVERPOOL '] = df_skus['LIVERPOOL '].astype(float).astype('Int64').astype(str)
         df_skus['PALACIO'] = df_skus['PALACIO'].astype(float).astype('Int64').astype(str)
 
-        df_existencias = df_existencias.rename(columns={df_existencias.columns[0]: 'CODIGO_EXIST'})
-        df_existencias = df_existencias[df_existencias['CODIGO_EXIST'].astype(str).str.isnumeric()]
-        df_existencias['CODIGO_EXIST'] = df_existencias['CODIGO_EXIST'].astype(float).astype('Int64').astype(str)
-        df_temp1 = df_existencias.iloc[:, [0, 2]].copy()
-        df_temp1.columns = ['LIVERPOOL ', 'EXISTENCIAS']
+        df_existencias = pd.read_excel(archivo_existencias, header=3)
+df_existencias = df_existencias[['CODIGO', 'CANTIDAD']].dropna()
+df_existencias.columns = ['LIVERPOOL ', 'EXISTENCIAS']
+df_existencias['LIVERPOOL '] = df_existencias['LIVERPOOL '].astype(str).str.strip()
         df_skus = pd.merge(df_skus, df_temp1, how="left", on="LIVERPOOL ")
 
-        df_ordenado = df_ordenado.rename(columns={df_ordenado.columns[0]: 'CODIGO_ORD'})
-        df_ordenado = df_ordenado[df_ordenado['CODIGO_ORD'].astype(str).str.isnumeric()]
-        df_ordenado['CODIGO_ORD'] = df_ordenado['CODIGO_ORD'].astype(float).astype('Int64').astype(str)
-        df_temp2 = df_ordenado.iloc[:, [0, 4]].copy()
-        df_temp2.columns = ['LIVERPOOL ', 'ORDENADO']
+        df_ordenado = pd.read_excel(archivo_ordenado, header=4)
+df_ordenado = df_ordenado[['CODIGO', 'PEDIDO']].dropna()
+df_ordenado.columns = ['LIVERPOOL ', 'ORDENADO']
+df_ordenado['LIVERPOOL '] = df_ordenado['LIVERPOOL '].astype(str).str.strip()
         df_skus = pd.merge(df_skus, df_temp2, how="left", on="LIVERPOOL ")
 
         df_ventas_liv = df_ventas_liv[['Artículo', 'vta total 9 meses']].dropna()
