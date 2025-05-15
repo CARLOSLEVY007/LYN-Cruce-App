@@ -2,17 +2,15 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
-
-st.set_page_config(page_title="LYN DE MEXICO – Cruce de Archivos", layout="centered")
-
 import os
 from PIL import Image
+
+st.set_page_config(page_title="LYN DE MEXICO – Cruce de Archivos", layout="centered")
 
 logo_path = os.path.join("assets", "logo.png")
 if os.path.exists(logo_path):
     st.image(Image.open(logo_path), width=150)
-else:
-    st.warning("⚠️ No se encontró el logo en /assets/logo.png")
+
 st.title("LYN DE MEXICO – Agente de Cruce Inteligente")
 st.markdown("Bienvenido al Agente de Cruce de Archivos de **LYN DE MEXICO**.\nSube los archivos requeridos para generar el reporte de ventas y existencias automatizado.")
 
@@ -27,27 +25,23 @@ if st.button("🚀 Ejecutar Cruce"):
         st.warning("Por favor carga todos los archivos.")
     else:
         df_skus = pd.read_excel(archivo_skus)
-        df_existencias = pd.read_excel(archivo_existencias)
-        df_ordenado = pd.read_excel(archivo_ordenado)
-        df_ventas_liv = pd.read_excel(archivo_liverpool)
-        df_ventas_pal = pd.read_excel(archivo_palacio)
-
         df_skus = df_skus[df_skus['LIVERPOOL '].notna() & df_skus['PALACIO'].notna()].copy()
         df_skus['LIVERPOOL '] = df_skus['LIVERPOOL '].astype(float).astype('Int64').astype(str)
         df_skus['PALACIO'] = df_skus['PALACIO'].astype(float).astype('Int64').astype(str)
 
         df_existencias = pd.read_excel(archivo_existencias, header=3)
-df_existencias = df_existencias[['CODIGO', 'CANTIDAD']].dropna()
-df_existencias.columns = ['LIVERPOOL ', 'EXISTENCIAS']
-df_existencias['LIVERPOOL '] = df_existencias['LIVERPOOL '].astype(str).str.strip()
-        df_skus = pd.merge(df_skus, df_temp1, how="left", on="LIVERPOOL ")
+        df_existencias = df_existencias[['CODIGO', 'CANTIDAD']].dropna()
+        df_existencias.columns = ['LIVERPOOL ', 'EXISTENCIAS']
+        df_existencias['LIVERPOOL '] = df_existencias['LIVERPOOL '].astype(str).str.strip()
+        df_skus = pd.merge(df_skus, df_existencias, how="left", on="LIVERPOOL ")
 
         df_ordenado = pd.read_excel(archivo_ordenado, header=4)
-df_ordenado = df_ordenado[['CODIGO', 'PEDIDO']].dropna()
-df_ordenado.columns = ['LIVERPOOL ', 'ORDENADO']
-df_ordenado['LIVERPOOL '] = df_ordenado['LIVERPOOL '].astype(str).str.strip()
-        df_skus = pd.merge(df_skus, df_temp2, how="left", on="LIVERPOOL ")
+        df_ordenado = df_ordenado[['CODIGO', 'PEDIDO']].dropna()
+        df_ordenado.columns = ['LIVERPOOL ', 'ORDENADO']
+        df_ordenado['LIVERPOOL '] = df_ordenado['LIVERPOOL '].astype(str).str.strip()
+        df_skus = pd.merge(df_skus, df_ordenado, how="left", on="LIVERPOOL ")
 
+        df_ventas_liv = pd.read_excel(archivo_liverpool)
         df_ventas_liv = df_ventas_liv[['Artículo', 'vta total 9 meses']].dropna()
         df_ventas_liv.columns = ['CODIGO_LIV', 'VENTAS LIV 9 MESES']
         df_ventas_liv = df_ventas_liv[df_ventas_liv['CODIGO_LIV'].astype(str).str.isnumeric()]
@@ -55,6 +49,7 @@ df_ordenado['LIVERPOOL '] = df_ordenado['LIVERPOOL '].astype(str).str.strip()
         df_skus = pd.merge(df_skus, df_ventas_liv, how='left', left_on='LIVERPOOL ', right_on='CODIGO_LIV')
         df_skus.drop(columns='CODIGO_LIV', inplace=True)
 
+        df_ventas_pal = pd.read_excel(archivo_palacio)
         df_ventas_pal = df_ventas_pal[['Clave de Artículo', 'Venta Neta en UM']].dropna()
         df_ventas_pal.columns = ['CODIGO_PAL', 'VENTAS PAL 9 MESES']
         df_ventas_pal = df_ventas_pal[df_ventas_pal['CODIGO_PAL'].astype(str).str.isnumeric()]
